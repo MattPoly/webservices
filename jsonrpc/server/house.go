@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net"
-	"net/http"
+	// "net/http"
 	"net/rpc"
+	"net/rpc/jsonrpc"
+	"strconv"
 )
 
 type HouseDAO struct {
@@ -45,8 +47,53 @@ type Args struct {
 
 type House int
 
-func main() {
-	/**
-    TO DO
-    **/
+func (t *House) GetHouse(args *Args, house *HouseDAO) error {
+	log.Printf(strconv.Itoa(args.Id))
+	for i:=0; i < len(houses); i++ {
+		if houses[i].Id == args.Id {
+			*house = houses[i]
+		}
+	}
+	log.Printf(house.Name)
+	return nil
 }
+
+// func main() {
+// 	l, e := net.Listen("tcp", ":1234")
+
+// 	house := new(House)
+// 	err := rpc.Register(house)
+// 	rpc.HandleHTTP()
+
+// 	if e != nil {
+// 		log.Fatalf("Couldn't start listening on port 1234. Error %s", e)
+// 	}
+// 	log.Println("Serving RPC handler")
+// 	err = http.Serve(l, nil)
+// 	if err != nil {
+// 		log.Fatalf("Error serving: %s", err)
+// 	}
+// }
+
+func main() {
+	server := rpc.NewServer()
+	house := new(House)
+	server.Register(house)
+	server.HandleHTTP("/rpc","/debug")
+
+	l, e := net.Listen("tcp", ":1234")
+	if e != nil {
+		log.Fatalf("Couldn't start listening on port 1234. Error %s", e)
+	}
+
+	log.Println("Serving RPC handler")
+	for {
+        conn, err := l.Accept()
+        if err != nil {
+            log.Fatal(err)
+        }
+        go server.ServeCodec(jsonrpc.NewServerCodec(conn))
+	}
+}
+
+// https://stackoverflow.com/questions/36610140/call-golang-call-jsonrpc-with-curl

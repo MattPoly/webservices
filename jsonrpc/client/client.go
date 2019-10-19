@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"net/rpc"
+	"net/rpc/jsonrpc"
 )
 
 type HouseDAO struct {
@@ -44,7 +44,16 @@ type Args struct {
 type House int
 
 func main() {
-	/**
-	TO DO
-	**/
+	client, err := jsonrpc.Dial("tcp", "localhost:1234")
+	if err != nil {
+		log.Fatal("dialing:", err)
+	}
+	
+	args := Args{1}
+	var reply HouseDAO
+	err = client.Call("House.GetHouse", args, &reply)
+	if err != nil {
+		log.Fatal("house error:", err)
+	}
+	log.Printf("House: %d", args.Id)
 }
