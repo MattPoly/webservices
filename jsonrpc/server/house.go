@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net"
-	// "net/http"
+	"net/http"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"strconv"
@@ -79,7 +79,11 @@ func main() {
 	server := rpc.NewServer()
 	house := new(House)
 	server.Register(house)
-	server.HandleHTTP("/rpc","/debug")
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		server.ServeHTTP(w, r)
+	})
 
 	l, e := net.Listen("tcp", ":1234")
 	if e != nil {
